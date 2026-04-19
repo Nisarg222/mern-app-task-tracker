@@ -8,7 +8,7 @@ export const registerUser = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await api.post("/auth/register", data);
-      return res.data.data;
+        return res.data; // { user, token }
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Registration failed",
@@ -22,7 +22,7 @@ export const loginUser = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await api.post("/auth/login", data);
-      return res.data.data;
+      return res.data; // { user, token }
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Login failed");
     }
@@ -58,6 +58,12 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.error = null;
+      clear();
+    },
   },
   extraReducers: (builder) => {
     const pending = (state) => {
@@ -68,7 +74,6 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = payload;
     };
-
     const setAuth = (state, { payload }) => {
       state.loading = false;
       state.user = payload.user;
@@ -77,16 +82,14 @@ const authSlice = createSlice({
     };
 
     builder
-      // register
       .addCase(registerUser.pending, pending)
       .addCase(registerUser.rejected, rejected)
       .addCase(registerUser.fulfilled, setAuth)
-      // login
       .addCase(loginUser.pending, pending)
       .addCase(loginUser.rejected, rejected)
       .addCase(loginUser.fulfilled, setAuth);
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, logout } = authSlice.actions;
 export default authSlice.reducer;
