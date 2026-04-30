@@ -68,9 +68,13 @@ const TaskListing = () => {
   }, [debouncedSearch]);
 
   const handleStatusChange = async (task, newStatus) => {
+    // Optimistic UI update and mongo and sql id handling
     try {
       await dispatch(
-        updatetask({ id: task._id, data: { ...task, status: newStatus } }),
+        updatetask({
+          id: task._id || task.id,
+          data: { ...task, status: newStatus },
+        }),
       ).unwrap();
       toast.success("Status updated");
     } catch {
@@ -103,7 +107,11 @@ const TaskListing = () => {
   return (
     <Box>
       {/* Header row */}
-      <Box className="flex items-center justify-between mb-4" flexWrap="wrap" gap={2}>
+      <Box
+        className="flex items-center justify-between mb-4"
+        flexWrap="wrap"
+        gap={2}
+      >
         <Box>
           <Typography variant="h5" fontWeight={700}>
             My Tasks
@@ -166,18 +174,73 @@ const TaskListing = () => {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: "#f8f9fb" }}>
-                  <TableCell sx={{ fontWeight: 600, color: "text.secondary", fontSize: 12, textTransform: "uppercase" }}>#</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: "text.secondary", fontSize: 12, textTransform: "uppercase" }}>Title</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: "text.secondary", fontSize: 12, textTransform: "uppercase" }}>Description</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: "text.secondary", fontSize: 12, textTransform: "uppercase" }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: "text.secondary", fontSize: 12, textTransform: "uppercase" }}>Due Date</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: "text.secondary", fontSize: 12, textTransform: "uppercase" }} align="right">Actions</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    #
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Title
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Description
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Status
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Due Date
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      color: "text.secondary",
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                    }}
+                    align="right"
+                  >
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {tasks.map((task, idx) => (
                   <TableRow
-                    key={task._id}
+                    key={task._id || task.id}
                     hover
                     sx={{ "&:last-child td": { border: 0 } }}
                   >
@@ -207,27 +270,43 @@ const TaskListing = () => {
                       <Select
                         size="small"
                         value={task.status}
-                        onChange={(e) => handleStatusChange(task, e.target.value)}
+                        onChange={(e) =>
+                          handleStatusChange(task, e.target.value)
+                        }
                         renderValue={(val) => (
                           <Chip
                             label={val}
                             size="small"
                             color={STATUS_COLOR[val] || "default"}
-                            sx={{ textTransform: "capitalize", fontSize: 11, height: 22 }}
+                            sx={{
+                              textTransform: "capitalize",
+                              fontSize: 11,
+                              height: 22,
+                            }}
                           />
                         )}
                         sx={{
-                          "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            border: "none",
+                          },
                           "& .MuiSelect-select": { p: 0 },
                         }}
                       >
                         {STATUS_OPTIONS.map((s) => (
-                          <MenuItem key={s} value={s} sx={{ textTransform: "capitalize" }}>
+                          <MenuItem
+                            key={s}
+                            value={s}
+                            sx={{ textTransform: "capitalize" }}
+                          >
                             <Chip
                               label={s}
                               size="small"
                               color={STATUS_COLOR[s] || "default"}
-                              sx={{ textTransform: "capitalize", fontSize: 11, height: 22 }}
+                              sx={{
+                                textTransform: "capitalize",
+                                fontSize: 11,
+                                height: 22,
+                              }}
                             />
                           </MenuItem>
                         ))}
@@ -243,7 +322,9 @@ const TaskListing = () => {
                         <IconButton
                           size="small"
                           color="primary"
-                          onClick={() => navigate(`/task/edit/${task._id}`)}
+                          onClick={() =>
+                            navigate(`/task/edit/${task._id || task.id}`)
+                          }
                         >
                           <EditIcon fontSize="small" />
                         </IconButton>
@@ -253,7 +334,10 @@ const TaskListing = () => {
                           size="small"
                           color="error"
                           onClick={() =>
-                            setDeleteDialog({ open: true, id: task._id })
+                            setDeleteDialog({
+                              open: true,
+                              id: task._id || task.id,
+                            })
                           }
                         >
                           <DeleteIcon fontSize="small" />
@@ -291,7 +375,8 @@ const TaskListing = () => {
         <DialogTitle fontWeight={600}>Delete Task</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
-            Are you sure you want to delete this task? This action cannot be undone.
+            Are you sure you want to delete this task? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -301,7 +386,11 @@ const TaskListing = () => {
           >
             Cancel
           </Button>
-          <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeleteConfirm}
+          >
             Delete
           </Button>
         </DialogActions>
